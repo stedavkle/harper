@@ -177,7 +177,6 @@ use super::right_click::RightClick;
 use super::roller_skated::RollerSkated;
 use super::safe_to_save::SafeToSave;
 use super::save_to_safe::SaveToSafe;
-use super::semicolon_apostrophe::SemicolonApostrophe;
 use super::sentence_capitalization::SentenceCapitalization;
 use super::shoot_oneself_in_the_foot::ShootOneselfInTheFoot;
 use super::simple_past_to_past_participle::SimplePastToPastParticiple;
@@ -235,6 +234,7 @@ use super::wish_could::WishCould;
 use super::wordpress_dotcom::WordPressDotcom;
 use super::worth_to_do::WorthToDo;
 use super::would_never_have::WouldNeverHave;
+use super::wrong_apostrophe::WrongApostrophe;
 
 use super::{ExprLinter, Lint};
 use super::{HtmlDescriptionLinter, Linter};
@@ -578,7 +578,6 @@ impl LintGroup {
         insert_expr_rule!(RollerSkated, true);
         insert_expr_rule!(SafeToSave, true);
         insert_expr_rule!(SaveToSafe, true);
-        insert_expr_rule!(SemicolonApostrophe, true);
         insert_expr_rule!(ShootOneselfInTheFoot, true);
         insert_expr_rule!(SimplePastToPastParticiple, true);
         insert_expr_rule!(SinceDuration, true);
@@ -603,6 +602,7 @@ impl LintGroup {
         insert_expr_rule!(ThenThan, true);
         insert_expr_rule!(Theres, true);
         insert_expr_rule!(ThesesThese, true);
+        insert_struct_rule!(TheyreConfusions, true);
         insert_expr_rule!(ThingThink, true);
         insert_expr_rule!(ThisTypeOfThing, true);
         insert_expr_rule!(ThoughThought, true);
@@ -612,7 +612,6 @@ impl LintGroup {
         insert_struct_rule!(ToTwoToo, true);
         insert_expr_rule!(Touristic, true);
         insert_expr_rule!(TryOnesHandAt, true);
-        insert_struct_rule!(TheyreConfusions, true);
         insert_struct_rule!(UnclosedQuotes, true);
         insert_expr_rule!(UpdatePlaceNames, true);
         insert_expr_rule!(VerbToAdjective, true);
@@ -631,6 +630,7 @@ impl LintGroup {
         insert_expr_rule!(WishCould, true);
         insert_struct_rule!(WordPressDotcom, true);
         insert_expr_rule!(WouldNeverHave, true);
+        insert_expr_rule!(WrongApostrophe, true);
 
         out.add("SpellCheck", SpellCheck::new(dictionary.clone(), dialect));
         out.config.set_rule_enabled("SpellCheck", true);
