@@ -69,6 +69,20 @@ impl Language {
     }
 }
 
+/// The natural/human language Harper checks against.
+#[wasm_bindgen]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
+pub enum NaturalLanguage {
+    English,
+    German,
+}
+
+impl Default for NaturalLanguage {
+    fn default() -> Self {
+        NaturalLanguage::English
+    }
+}
+
 /// Specifies an English Dialect, often used for linting.
 #[wasm_bindgen]
 #[derive(Serialize, Deserialize, Debug, Clone, Copy)]
@@ -102,6 +116,7 @@ pub struct Linter {
     dictionary: Arc<MergedDictionary>,
     ignored_lints: IgnoredLints,
     dialect: Dialect,
+    natural_language: NaturalLanguage,
     stats: Stats,
 }
 
@@ -113,12 +128,17 @@ struct WeirpackTestFailure {
 
 #[wasm_bindgen]
 impl Linter {
-    /// Construct a new `Linter`.
+    /// Construct a new `Linter` for the given dialect of English.
     /// Note that this can mean constructing the curated dictionary, which is the most expensive operation
     /// in Harper.
     pub fn new(dialect: Dialect) -> Self {
-        let dictionary = Self::construct_merged_dict(MutableDictionary::default());
-        let lint_group = LintGroup::new_curated_empty_config(dictionary.clone(), dialect.into());
+        Self::new_with_language(dialect, NaturalLanguage::English)
+    }
+
+    /// Construct a new `Linter` for the given natural language.
+    pub fn new_with_language(dialect: Dialect, natural_language: NaturalLanguage) -> Self {
+        let dictionary = Self::construct_merged_dict(MutableDictionary::default(), natural_language);
+        let lint_group = Self::create_lint_group(dictionary.clone(), dialect, natural_language);
 
         Self {
             lint_group,
@@ -126,26 +146,69 @@ impl Linter {
             dictionary,
             ignored_lints: IgnoredLints::default(),
             dialect,
+            natural_language,
             stats: Stats::default(),
         }
+    }
+
+    /// Get the natural language this linter is configured for.
+    pub fn get_natural_language(&self) -> NaturalLanguage {
+        self.natural_language
     }
 
     /// Update the dictionary inside [`Self::lint_group`] to include [`Self::user_dictionary`].
     /// This clears any linter caches, so use it sparingly.
     fn synchronize_lint_dict(&mut self) {
         let mut lint_config = self.lint_group.config.clone();
-        self.dictionary = Self::construct_merged_dict(self.user_dictionary.clone());
+        self.dictionary =
+            Self::construct_merged_dict(self.user_dictionary.clone(), self.natural_language);
         self.lint_group =
-            LintGroup::new_curated_empty_config(self.dictionary.clone(), self.dialect.into());
+            Self::create_lint_group(self.dictionary.clone(), self.dialect, self.natural_language);
         self.lint_group.config.merge_from(&mut lint_config);
+    }
+
+    /// Build the appropriate lint group for the configured language.
+    fn create_lint_group(
+        dictionary: Arc<MergedDictionary>,
+        dialect: Dialect,
+        natural_language: NaturalLanguage,
+    ) -> LintGroup {
+        match natural_language {
+            NaturalLanguage::English => {
+                LintGroup::new_curated_empty_config(dictionary, dialect.into())
+            }
+            #[cfg(feature = "german")]
+            NaturalLanguage::German => harper_german::lint_group_german(dictionary),
+            #[cfg(not(feature = "german"))]
+            NaturalLanguage::German => {
+                // Fallback: use English linting when German feature is disabled
+                LintGroup::new_curated_empty_config(dictionary, dialect.into())
+            }
+        }
     }
 
     /// Construct the actual dictionary to be used for linting and parsing from the curated dictionary
     /// and [`Self::user_dictionary`].
-    fn construct_merged_dict(user_dictionary: MutableDictionary) -> Arc<MergedDictionary> {
+    fn construct_merged_dict(
+        user_dictionary: MutableDictionary,
+        natural_language: NaturalLanguage,
+    ) -> Arc<MergedDictionary> {
         let mut lint_dict = MergedDictionary::new();
 
-        lint_dict.add_dictionary(FstDictionary::curated());
+        match natural_language {
+            NaturalLanguage::English => {
+                lint_dict.add_dictionary(FstDictionary::curated());
+            }
+            #[cfg(feature = "german")]
+            NaturalLanguage::German => {
+                lint_dict.add_dictionary(harper_german::curated_dictionary());
+            }
+            #[cfg(not(feature = "german"))]
+            NaturalLanguage::German => {
+                lint_dict.add_dictionary(FstDictionary::curated());
+            }
+        }
+
         lint_dict.add_dictionary(Arc::new(user_dictionary));
 
         Arc::new(lint_dict)
