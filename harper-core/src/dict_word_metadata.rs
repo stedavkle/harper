@@ -240,6 +240,7 @@ impl DictWordMetadata {
                         is_countable: None,
                         is_mass: None,
                         is_possessive: None,
+                        gender: None,
                     })
                 }
 
@@ -266,6 +267,7 @@ impl DictWordMetadata {
                         is_countable: None,
                         is_mass: None,
                         is_possessive: None,
+                        gender: None,
                     })
                 }
 
@@ -841,6 +843,14 @@ impl VerbData {
     }
 }
 
+/// Grammatical gender of a noun, relevant for languages like German.
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Serialize, Deserialize, PartialOrd, Hash)]
+pub enum Gender {
+    Masculine,
+    Feminine,
+    Neuter,
+}
+
 // nouns can be both singular and plural: "aircraft", "biceps", "fish", "sheep"
 // TODO other noun properties may be worth adding: abstract
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, PartialOrd, Eq, Hash, Default)]
@@ -851,6 +861,9 @@ pub struct NounData {
     pub is_countable: Option<bool>,
     pub is_mass: Option<bool>,
     pub is_possessive: Option<bool>,
+    /// Grammatical gender (used for German and other gendered languages).
+    #[serde(default)]
+    pub gender: Option<Gender>,
 }
 
 impl NounData {
@@ -863,6 +876,7 @@ impl NounData {
             is_countable: self.is_countable.or(other.is_countable),
             is_mass: self.is_mass.or(other.is_mass),
             is_possessive: self.is_possessive.or(other.is_possessive),
+            gender: self.gender.or(other.gender),
         }
     }
 }

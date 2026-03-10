@@ -1632,6 +1632,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a2330da5de22e8a3cb63252ce2abb30116bf5265e89c0e01bc17015ce30a476"
 
 [[package]]
+name = "decompound"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5922af4bd9b1bb7efc3a36a302aa4777d1f1447a6dc3f45af04e87148607835d"
+dependencies = [
+ "bitflags 2.11.0",
+ "log",
+ "unicode_titlecase",
+]
+
+[[package]]
 name = "deranged"
 version = "0.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2828,6 +2839,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "harper-german"
+version = "0.1.0"
+dependencies = [
+ "decompound",
+ "harper-core",
+ "zstd",
+]
+
+[[package]]
 name = "harper-html"
 version = "1.9.0"
 dependencies = [
@@ -2883,6 +2903,7 @@ dependencies = [
  "harper-asciidoc",
  "harper-comments",
  "harper-core",
+ "harper-german",
  "harper-html",
  "harper-ink",
  "harper-jjdescription",
@@ -6375,6 +6396,12 @@ name = "unicode_categories"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
+
+[[package]]
+name = "unicode_titlecase"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "de023a2c2eb3e07fdf1be663df7010e23968a3b9a5e94d1a860f620bdfd233e2"
 
 [[package]]
 name = "unindent"

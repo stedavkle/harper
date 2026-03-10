@@ -1,0 +1,58 @@
+{
+	"affixes": {},
+	"properties": {
+		"N": {
+			"metadata": {
+				"noun": {}
+			}
+		},
+		"V": {
+			"metadata": {
+				"verb": {}
+			}
+		},
+		"A": {
+			"metadata": {
+				"adjective": {}
+			}
+		},
+		"D": {
+			"metadata": {
+				"adverb": {}
+			}
+		},
+		"T": {
+			"metadata": {
+				"determiner": {}
+			}
+		},
+		"P": {
+			"metadata": {
+				"preposition": true
+			}
+		},
+		"C": {
+			"metadata": {
+				"conjunction": {}
+			}
+		},
+		"R": {
+			"metadata": {
+				"pronoun": {}
+			}
+		},
+		"X": {
+			"metadata": {}
+		},
+		"Q": {
+			"metadata": {
+				"noun": {
+					"is_proper": true
+				}
+			}
+		},
+		"M": {
+			"metadata": {}
+		}
+	}
+}

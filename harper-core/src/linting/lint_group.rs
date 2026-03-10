@@ -718,6 +718,42 @@ impl LintGroup {
         out
     }
 
+    /// Create a lint group with only language-agnostic rules.
+    ///
+    /// This is intended for non-English languages that share universal
+    /// formatting and spelling rules but don't have English-specific grammar checks.
+    /// The `Dialect::American` is used as a placeholder for spell-check suggestion
+    /// filtering — it has no effect when the dictionary has no dialect-specific words.
+    pub fn new_language_agnostic(dictionary: Arc<impl Dictionary + 'static>) -> Self {
+        let mut out = Self::empty();
+
+        out.add(
+            "SpellCheck",
+            SpellCheck::new(dictionary.clone(), Dialect::American),
+        );
+        out.config.set_rule_enabled("SpellCheck", true);
+
+        out.add("RepeatedWords", RepeatedWords::default());
+        out.config.set_rule_enabled("RepeatedWords", true);
+
+        out.add("Spaces", Spaces::default());
+        out.config.set_rule_enabled("Spaces", true);
+
+        out.add("EllipsisLength", EllipsisLength::default());
+        out.config.set_rule_enabled("EllipsisLength", true);
+
+        out.add("UnclosedQuotes", UnclosedQuotes::default());
+        out.config.set_rule_enabled("UnclosedQuotes", true);
+
+        out.add(
+            "SentenceCapitalization",
+            SentenceCapitalization::new(dictionary),
+        );
+        out.config.set_rule_enabled("SentenceCapitalization", true);
+
+        out
+    }
+
     /// Create a new curated group with all config values cleared out.
     pub fn new_curated_empty_config(
         dictionary: Arc<impl Dictionary + 'static>,
@@ -745,6 +781,18 @@ impl LintGroup {
             self.linters
                 .insert(name.as_ref().to_string(), Box::new(linter));
             true
+        }
+    }
+
+    /// Replace an existing linter with a new one.
+    /// Returns `true` if a linter with that name existed and was replaced.
+    pub fn replace(&mut self, name: impl AsRef<str>, linter: impl Linter + 'static) -> bool {
+        let key = name.as_ref().to_string();
+        if self.linters.contains_key(&key) {
+            self.linters.insert(key, Box::new(linter));
+            true
+        } else {
+            false
         }
     }
 

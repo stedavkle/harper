@@ -19,7 +19,7 @@ use harper_core::parsers::{
     CollapseIdentifiers, IsolateEnglish, Markdown, OrgMode, Parser, PlainEnglish,
 };
 use harper_core::spell::{Dictionary, FstDictionary, MergedDictionary, MutableDictionary};
-use harper_core::{Dialect, DictWordMetadata, Document, IgnoredLints};
+use harper_core::{Dialect, DictWordMetadata, Document, IgnoredLints, Language};
 use harper_html::HtmlParser;
 use harper_ink::InkParser;
 use harper_jjdescription::JJDescriptionParser;
@@ -201,13 +201,27 @@ impl Backend {
     }
 
     async fn generate_global_dictionary(&self) -> Result<MergedDictionary> {
+        let language = self.config.read().await.language;
         let mut dict = MergedDictionary::new();
-        dict.add_dictionary(FstDictionary::curated());
+        dict.add_dictionary(Self::curated_dictionary_for_language(language));
         let user_dict = self.load_user_dictionary().await;
         dict.add_dictionary(Arc::new(user_dict));
         let ws_dict = self.load_workspace_dictionary().await;
         dict.add_dictionary(Arc::new(ws_dict));
         Ok(dict)
+    }
+
+    fn curated_dictionary_for_language(language: Language) -> Arc<FstDictionary> {
+        match language {
+            Language::English => FstDictionary::curated(),
+            #[cfg(feature = "german")]
+            Language::German => harper_german::curated_dictionary(),
+            #[cfg(not(feature = "german"))]
+            Language::German => {
+                warn!("German language support not compiled. Falling back to English.");
+                FstDictionary::curated()
+            }
+        }
     }
 
     async fn generate_file_dictionary(&self, uri: &Uri) -> Result<MergedDictionary> {
@@ -250,6 +264,7 @@ impl Backend {
             markdown_options,
             isolate_english,
             dialect,
+            language,
             max_file_length,
             exclude_patterns,
         ) = {
@@ -259,6 +274,7 @@ impl Backend {
                 config.markdown_options,
                 config.isolate_english,
                 config.dialect,
+                config.language,
                 config.max_file_length,
                 config.exclude_patterns.clone(),
             )
@@ -284,13 +300,23 @@ impl Backend {
                 .context("Unable to generate the file dictionary.")?,
         );
 
+        let make_linter = |dict: Arc<_>, lint_config: &LintGroupConfig| -> LintGroup {
+            match language {
+                Language::English => {
+                    LintGroup::new_curated(dict, dialect).with_lint_config(lint_config.clone())
+                }
+                Language::German => {
+                    LintGroup::new_language_agnostic(dict).with_lint_config(lint_config.clone())
+                }
+            }
+        };
+
         let doc_state = doc_lock.entry(uri.clone()).or_insert_with(|| {
             info!("Constructing new LintGroup for new document.");
 
             DocumentState {
                 ignored_lints,
-                linter: LintGroup::new_curated(dict.clone(), dialect)
-                    .with_lint_config(lint_config.clone()),
+                linter: make_linter(dict.clone(), &lint_config),
                 language_id: language_id.map(|v| v.to_string()),
                 dict: dict.clone(),
                 uri: uri.clone(),
@@ -301,8 +327,7 @@ impl Backend {
         if doc_state.dict != dict {
             doc_state.dict = dict.clone();
             info!("Constructing new linter because of modified dictionary.");
-            doc_state.linter =
-                LintGroup::new_curated(dict.clone(), dialect).with_lint_config(lint_config.clone());
+            doc_state.linter = make_linter(dict.clone(), &lint_config);
         }
 
         let Some(language_id) = &doc_state.language_id else {
@@ -407,7 +432,7 @@ impl Backend {
                 doc_lock.remove(uri);
             }
             Some(mut parser) => {
-                if isolate_english {
+                if isolate_english && matches!(language, Language::English) {
                     parser = Box::new(IsolateEnglish::new(parser, doc_state.dict.clone()));
                 }
 

@@ -1,0 +1,14 @@
+[package]
+name = "harper-german"
+version = "0.1.0"
+edition = "2021"
+description = "German language support for Harper"
+license = "Apache-2.0"
+
+[dependencies]
+harper-core = { path = "../harper-core" }
+decompound = "0.3"
+zstd = "0.13"
+
+[build-dependencies]
+zstd = "0.13"

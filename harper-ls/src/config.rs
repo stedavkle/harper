@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Result, bail};
 use dirs::{config_dir, data_local_dir};
 use globset::{Glob, GlobSet};
-use harper_core::{Dialect, linting::LintGroupConfig, parsers::MarkdownOptions};
+use harper_core::{Dialect, Language, linting::LintGroupConfig, parsers::MarkdownOptions};
 use resolve_path::PathResolveExt;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -75,6 +75,7 @@ pub struct Config {
     pub isolate_english: bool,
     pub markdown_options: MarkdownOptions,
     pub dialect: Dialect,
+    pub language: Language,
     /// Maximum length (in bytes) a file can have before it's skipped.
     /// Above this limit, the file will not be linted.
     pub max_file_length: usize,
@@ -165,6 +166,14 @@ impl Config {
             base.dialect = serde_json::from_value(v.clone())?;
         }
 
+        if let Some(v) = value.get("language") {
+            if let Some(s) = v.as_str() {
+                if let Some(lang) = Language::from_str_loose(s) {
+                    base.language = lang;
+                }
+            }
+        }
+
         if let Some(v) = value.get("codeActions") {
             base.code_action_config = CodeActionConfig::from_lsp_config(v.clone())?;
         }
@@ -224,6 +233,7 @@ impl Default for Config {
             isolate_english: false,
             markdown_options: MarkdownOptions::default(),
             dialect: Dialect::American,
+            language: Language::default(),
             max_file_length: 120_000,
             exclude_patterns: GlobSet::empty(),
         }

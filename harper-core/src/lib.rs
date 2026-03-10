@@ -14,6 +14,7 @@ mod fat_token;
 mod ignored_lints;
 mod irregular_nouns;
 mod irregular_verbs;
+mod language;
 pub mod language_detection;
 mod lexing;
 pub mod linting;
@@ -44,7 +45,7 @@ pub use char_string::{CharString, CharStringExt};
 pub use currency::Currency;
 pub use dict_word_metadata::{
     AdverbData, ConjunctionData, Degree, DeterminerData, Dialect, DialectFlags, DictWordMetadata,
-    NounData, PronounData, VerbData, VerbForm, VerbFormFlags,
+    Gender, NounData, PronounData, VerbData, VerbForm, VerbFormFlags,
 };
 pub use dict_word_metadata_orthography::{OrthFlags, Orthography};
 pub use document::Document;
@@ -52,6 +53,7 @@ pub use fat_token::{FatStringToken, FatToken};
 pub use ignored_lints::{IgnoredLints, LintContext};
 pub use irregular_nouns::IrregularNouns;
 pub use irregular_verbs::IrregularVerbs;
+pub use language::Language;
 use linting::Lint;
 pub use mask::{Mask, Masker, RegexMasker};
 pub use number::{Number, OrdinalSuffix};

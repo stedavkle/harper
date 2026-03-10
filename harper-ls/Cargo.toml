@@ -33,7 +33,9 @@ futures = "0.3.32"
 serde = { version = "1.0.228", features = ["derive"] }
 globset = "0.4.18"
 harper-ink = { version = "1.0.0", path = "../harper-ink" }
+harper-german = { version = "0.1.0", path = "../harper-german", optional = true }
 
 [features]
-default = []
+default = ["german"]
 thesaurus = ["harper-core/thesaurus"]
+german = ["dep:harper-german"]
